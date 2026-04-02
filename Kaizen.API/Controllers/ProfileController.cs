@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Kaizen.API.Data;
 using Kaizen.API.Models;
+using Kaizen.API.Services;
 using System.Security.Claims;
 
 namespace Kaizen.API.Controllers;
@@ -12,11 +11,11 @@ namespace Kaizen.API.Controllers;
 [Authorize]
 public class ProfileController : ControllerBase
 {
-    private readonly KaizenDbContext _context;
+    private readonly IProfileService _profileService;
 
-    public ProfileController(KaizenDbContext context)
+    public ProfileController(IProfileService profileService)
     {
-        _context = context;
+        _profileService = profileService;
     }
 
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -24,8 +23,7 @@ public class ProfileController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<UserProfile>> GetProfile()
     {
-        var profile = await _context.UserProfiles
-            .FirstOrDefaultAsync(p => p.UserId == GetUserId());
+        var profile = await _profileService.GetProfileAsync(GetUserId());
 
         if (profile == null)
             return NotFound();
@@ -36,36 +34,22 @@ public class ProfileController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<UserProfile>> CreateProfile(UserProfile profile)
     {
-        profile.UserId = GetUserId();
-
-        var existing = await _context.UserProfiles
-            .FirstOrDefaultAsync(p => p.UserId == profile.UserId);
+        var existing = await _profileService.GetProfileAsync(GetUserId());
 
         if (existing != null)
             return Conflict("Profile already exists");
 
-        _context.UserProfiles.Add(profile);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetProfile), profile);
+        var created = await _profileService.CreateProfileAsync(GetUserId(), profile);
+        return CreatedAtAction(nameof(GetProfile), created);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateProfile(UserProfile updated)
     {
-        var profile = await _context.UserProfiles
-            .FirstOrDefaultAsync(p => p.UserId == GetUserId());
+        var profile = await _profileService.UpdateProfileAsync(GetUserId(), updated);
 
         if (profile == null)
             return NotFound();
-
-        profile.Height = updated.Height;
-        profile.Weight = updated.Weight;
-        profile.Age = updated.Age;
-        profile.Gender = updated.Gender;
-        profile.Goal = updated.Goal;
-
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }
