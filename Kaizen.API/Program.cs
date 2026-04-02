@@ -2,12 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Kaizen.API.Data;
+using Kaizen.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Database
 builder.Services.AddDbContext<KaizenDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//Services
+builder.Services.AddScoped<IProfileService, ProfileService>();
 
 // Auth0 JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
