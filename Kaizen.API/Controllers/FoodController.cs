@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Kaizen.API.Models;
 using Kaizen.API.Services;
 using System.Security.Claims;
+using Kaizen.API.DTOs;
 
 namespace Kaizen.API.Controllers;
 
@@ -46,9 +47,9 @@ public class FoodController : ControllerBase
     }
 
     [HttpPost("logs")]
-    public async Task<ActionResult<FoodLog>> CreateLog(FoodLog log)
+    public async Task<ActionResult<FoodLog>> CreateLog(CreateFoodLogDto dto)
     {
-        var created = await _foodService.CreateLogAsync(GetUserId(), log);
+        var created = await _foodService.CreateLogAsync(GetUserId(), dto);
         return CreatedAtAction(nameof(GetLogs), created);
     }
 

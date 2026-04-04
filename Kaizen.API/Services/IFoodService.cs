@@ -1,4 +1,5 @@
 using Kaizen.API.Models;
+using Kaizen.API.DTOs;
 
 namespace Kaizen.API.Services;
 
@@ -7,7 +8,7 @@ public interface IFoodService
     Task<List<Ingredient>> SearchIngredientsAsync(string? query);
     Task<Ingredient?> GetIngredientAsync(int id);
     Task<List<FoodLog>> GetLogsAsync(string userId, DateTime? date);
-    Task<FoodLog> CreateLogAsync(string userId, FoodLog log);
+    Task<FoodLog> CreateLogAsync(string userId, CreateFoodLogDto dto);
     Task<bool> DeleteLogAsync(string userId, int id);
     Task<DailySummary> GetDailySummaryAsync(string userId, DateTime date);
 }

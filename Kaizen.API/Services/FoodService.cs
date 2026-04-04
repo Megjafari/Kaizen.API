@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Kaizen.API.Data;
 using Kaizen.API.Models;
+using Kaizen.API.DTOs;
 
 namespace Kaizen.API.Services;
 
@@ -35,14 +36,25 @@ public class FoodService : IFoodService
             .Where(f => f.UserId == userId);
 
         if (date.HasValue)
-            query = query.Where(f => f.Date.Date == date.Value.Date);
+        {
+            var utcDate = DateTime.SpecifyKind(date.Value.Date, DateTimeKind.Utc);
+            var nextDay = utcDate.AddDays(1);
+            query = query.Where(f => f.Date >= utcDate && f.Date < nextDay);
+        }
 
         return await query.OrderByDescending(f => f.Date).ToListAsync();
     }
 
-    public async Task<FoodLog> CreateLogAsync(string userId, FoodLog log)
+    public async Task<FoodLog> CreateLogAsync(string userId, CreateFoodLogDto dto)
     {
-        log.UserId = userId;
+        var log = new FoodLog
+        {
+            UserId = userId,
+            Date = DateTime.SpecifyKind(dto.Date, DateTimeKind.Utc),
+            IngredientId = dto.IngredientId,
+            AmountGrams = dto.AmountGrams
+        };
+
         _context.FoodLogs.Add(log);
         await _context.SaveChangesAsync();
 
@@ -65,14 +77,17 @@ public class FoodService : IFoodService
 
     public async Task<DailySummary> GetDailySummaryAsync(string userId, DateTime date)
     {
+        var utcDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
+        var nextDay = utcDate.AddDays(1);
+
         var logs = await _context.FoodLogs
             .Include(f => f.Ingredient)
-            .Where(f => f.UserId == userId && f.Date.Date == date.Date)
+            .Where(f => f.UserId == userId && f.Date >= utcDate && f.Date < nextDay)
             .ToListAsync();
 
         return new DailySummary
         {
-            Date = date.Date,
+            Date = utcDate,
             TotalCalories = logs.Sum(f => f.Ingredient.Calories * f.AmountGrams / 100),
             TotalProtein = logs.Sum(f => f.Ingredient.Protein * f.AmountGrams / 100),
             TotalCarbs = logs.Sum(f => f.Ingredient.Carbs * f.AmountGrams / 100),
