@@ -4,6 +4,7 @@ using Kaizen.API.Models;
 using Kaizen.API.Services;
 using System.Security.Claims;
 using Kaizen.API.DTOs;
+using Kaizen.API.Data;
 
 namespace Kaizen.API.Controllers;
 
@@ -13,10 +14,12 @@ namespace Kaizen.API.Controllers;
 public class FoodController : ControllerBase
 {
     private readonly IFoodService _foodService;
+    private readonly KaizenDbContext _context;
 
-    public FoodController(IFoodService foodService)
+    public FoodController(IFoodService foodService, KaizenDbContext context)
     {
         _foodService = foodService;
+        _context = context;
     }
 
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -26,6 +29,14 @@ public class FoodController : ControllerBase
     public async Task<ActionResult<List<Ingredient>>> SearchIngredients([FromQuery] string? q)
     {
         return await _foodService.SearchIngredientsAsync(q);
+    }
+    
+    [HttpPost("ingredients")]
+    public async Task<ActionResult<Ingredient>> CreateIngredient(Ingredient ingredient)
+    {
+        _context.Ingredients.Add(ingredient);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetIngredient), new { id = ingredient.Id }, ingredient);
     }
 
     [HttpGet("ingredients/{id}")]
