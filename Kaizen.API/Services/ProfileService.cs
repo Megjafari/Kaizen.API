@@ -44,4 +44,24 @@ public class ProfileService : IProfileService
         await _context.SaveChangesAsync();
         return profile;
     }
+    public async Task<bool> DeleteAccountAsync(string userId)
+    {
+        var profile = await _context.UserProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        // Delete all user data
+        var workoutLogs = _context.WorkoutLogs.Where(w => w.UserId == userId);
+        var foodLogs = _context.FoodLogs.Where(f => f.UserId == userId);
+        var weightLogs = _context.WeightLogs.Where(w => w.UserId == userId);
+
+        _context.WorkoutLogs.RemoveRange(workoutLogs);
+        _context.FoodLogs.RemoveRange(foodLogs);
+        _context.WeightLogs.RemoveRange(weightLogs);
+
+        if (profile != null)
+            _context.UserProfiles.Remove(profile);
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

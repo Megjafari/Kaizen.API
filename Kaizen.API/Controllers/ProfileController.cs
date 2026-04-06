@@ -53,4 +53,11 @@ public class ProfileController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteAccount()
+    {
+        await _profileService.DeleteAccountAsync(GetUserId());
+        return NoContent();
+    }
 }
