@@ -10,4 +10,5 @@ public class UserProfile
     public string Gender { get; set; } = string.Empty;
     public string Goal { get; set; } = string.Empty; // lose/maintain/gain
     public string? ProfileImageUrl { get; set; }
+    public bool IsAdmin { get; set; } = false;
 }
