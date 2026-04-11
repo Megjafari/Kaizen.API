@@ -49,9 +49,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(builder.Configuration["Frontend:Url"] ?? "http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        policy.WithOrigins(
+            "http://localhost:5173",
+            "https://kaizen-frontend-pi.vercel.app"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
     });
 });
 
