@@ -30,9 +30,13 @@ public class WeightService : IWeightService
     public async Task<WeightLog> LogWeightAsync(string userId, WeightLog log)
     {
         log.UserId = userId;
+        log.Date = DateTime.SpecifyKind(log.Date.Date, DateTimeKind.Utc);
+
+        var startOfDay = log.Date.Date;
+        var endOfDay = startOfDay.AddDays(1);
 
         var existing = await _context.WeightLogs
-            .FirstOrDefaultAsync(w => w.UserId == userId && w.Date.Date == log.Date.Date);
+            .FirstOrDefaultAsync(w => w.UserId == userId && w.Date >= startOfDay && w.Date < endOfDay);
 
         if (existing != null)
         {
